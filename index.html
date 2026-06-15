@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Genetică · Grile</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#273449; --accent:#38bdf8; --accent2:#818cf8;
+    --green:#22c55e; --greenbg:#14532d; --red:#ef4444; --redbg:#7f1d1d;
+    --text:#e2e8f0; --muted:#94a3b8; --line:#334155; --gold:#fbbf24;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:18px 16px 60px;}
+  header.top{text-align:center; margin-bottom:18px;}
+  header.top h1{font-size:1.7rem; margin:0 0 4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  header.top p{color:var(--muted); margin:0; font-size:.95rem;}
+  .hidden{display:none !important;}
+
+  .grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px;}
+  @media(min-width:620px){.grid{grid-template-columns:1fr 1fr;}}
+  .synccard{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; cursor:pointer; transition:transform .08s, border-color .15s; }
+  .synccard:active{transform:scale(.985);}
+  .synccard:hover{border-color:var(--accent);}
+  .synccard h3{margin:0 0 4px; font-size:1.08rem;}
+  .synccard .sub{color:var(--muted); font-size:.86rem;}
+  .synccard .meta{margin-top:10px; font-size:.8rem; color:var(--accent);}
+
+  .bigbtn{display:block; width:100%; text-align:center; border:none; border-radius:16px; padding:18px;
+    font-size:1.1rem; font-weight:700; color:#06283d; cursor:pointer; margin-top:8px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .bigbtn:active{transform:scale(.99);}
+  .ghostbtn{display:inline-block; background:var(--card2); color:var(--text); border:1px solid var(--line);
+    border-radius:12px; padding:11px 16px; font-size:.95rem; cursor:pointer;}
+  .ghostbtn:active{transform:scale(.98);}
+
+  /* Idei de baza */
+  .idei{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin-bottom:16px;}
+  .idei h2{margin:0 0 10px; font-size:1.15rem; color:var(--gold);}
+  .idei ul{margin:0; padding-left:20px;}
+  .idei li{margin-bottom:9px;}
+  .idei li:last-child{margin-bottom:0;}
+
+  /* Quiz */
+  .qbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .progress{flex:1 1 140px; height:10px; background:var(--card2); border-radius:99px; overflow:hidden; min-width:120px;}
+  .progress > div{height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .3s;}
+  .pill{font-size:.82rem; color:var(--muted); white-space:nowrap;}
+  .pill b{color:var(--text);}
+  .qtag{display:inline-block; font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; color:var(--accent2); margin-bottom:6px;}
+  .qtext{font-size:1.18rem; font-weight:600; margin:0 0 16px;}
+  .opt{display:block; width:100%; text-align:left; background:var(--card); border:1.5px solid var(--line); color:var(--text);
+    border-radius:14px; padding:15px 16px; margin-bottom:11px; font-size:1.02rem; cursor:pointer; transition:border-color .1s, background .1s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt:active{transform:scale(.995);}
+  .opt .lt{display:inline-flex; width:26px; height:26px; border-radius:50%; background:var(--card2); color:var(--accent);
+    align-items:center; justify-content:center; font-weight:700; font-size:.85rem; margin-right:10px;}
+  .opt.correct{background:var(--greenbg); border-color:var(--green); color:#dcfce7;}
+  .opt.correct .lt{background:var(--green); color:#06280f;}
+  .opt.wrong{background:var(--redbg); border-color:var(--red); color:#fee2e2;}
+  .opt.wrong .lt{background:var(--red); color:#3f0a0a;}
+  .opt.dim{opacity:.55;}
+  .opt[disabled]{cursor:default;}
+  .expl{background:var(--card2); border-left:4px solid var(--accent); border-radius:0 12px 12px 0; padding:13px 15px; margin:4px 0 14px; font-size:.96rem; display:none;}
+  .expl.show{display:block; animation:fade .25s ease;}
+  .expl b{color:var(--green);}
+  .expl.bad b{color:var(--red);}
+  @keyframes fade{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;}}
+  .navrow{display:flex; gap:10px; margin-top:6px;}
+  .navrow .ghostbtn{flex:1;}
+  .next{flex:2 !important; background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#06283d; font-weight:700; border:none;}
+
+  /* Result */
+  .result{text-align:center; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:26px 18px;}
+  .result .score{font-size:3rem; font-weight:800; margin:6px 0; background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .result .emoji{font-size:2.6rem;}
+  .result p{color:var(--muted);}
+  .footer{text-align:center; color:var(--muted); font-size:.78rem; margin-top:26px;}
+  a.link{color:var(--accent); text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HOME -->
+  <section id="home">
+    <header class="top">
+      <h1>Genetică · Grile</h1>
+      <p>105 de grile din 16 sindroame · idei de bază + autoevaluare</p>
+    </header>
+    <button class="bigbtn" onclick="startMix()">🎲 Test mixt — întrebări amestecate din toate</button>
+    <p style="color:var(--muted); font-size:.85rem; margin:18px 4px 6px;">Sau alege un sindrom (vezi întâi ideile de bază, apoi grilele):</p>
+    <div class="grid" id="cards"></div>
+  </section>
+
+  <!-- IDEI -->
+  <section id="ideas" class="hidden">
+    <div class="qbar">
+      <button class="ghostbtn" onclick="goHome()">← Acasă</button>
+    </div>
+    <div class="idei" id="ideasBox"></div>
+    <button class="bigbtn" onclick="startCurrent()">▶ Începe grilele la acest sindrom</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="qbar">
+      <button class="ghostbtn" onclick="goHome()">← Acasă</button>
+      <div class="progress"><div id="progBar"></div></div>
+      <span class="pill" id="qcount"></span>
+      <span class="pill">Scor: <b id="scoreNow">0</b></span>
+    </div>
+    <div id="qTitle" class="pill" style="margin-bottom:8px;"></div>
+    <span class="qtag" id="qtag"></span>
+    <h2 class="qtext" id="qtext"></h2>
+    <div id="opts"></div>
+    <div class="expl" id="expl"></div>
+    <div class="navrow">
+      <button class="ghostbtn next" id="nextBtn" onclick="nextQ()" disabled>Răspunde mai întâi</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="hidden">
+    <div class="result">
+      <div class="emoji" id="rEmoji">🎉</div>
+      <div class="score"><span id="rScore">0</span>/<span id="rTotal">0</span></div>
+      <p id="rMsg"></p>
+      <p id="rPct" style="font-size:1.1rem; color:var(--text);"></p>
+      <div style="margin-top:18px; display:flex; gap:10px; flex-direction:column;">
+        <button class="bigbtn" onclick="retry()">🔁 Reia acest test</button>
+        <button class="ghostbtn" onclick="goHome()">Alege alt sindrom</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Materiale de studiu · generat din notițele tale · funcționează offline</div>
+</div>
+
+<script>
+const DATA = [{"nume": "Amelogenesis Imperfecta", "scurt": "Defect ereditar al smalțului dentar", "idei": ["Patologie ereditară rară care afectează STRICT smalțul dentar (origine ectodermală); dentina (componenta mezodermală) rămâne normală.", "Nu are manifestări generalizate — boala e limitată la dinți.", "4 forme clinice: hipoplazică, hipocalcifiată, hipomaturată și mixtă (hipocalcifiată+hipomaturată).", "Hipoplazică = smalț prea subțire; Hipocalcifiată = smalț foarte moale (se îndepărtează ușor cu instrumentul).", "Gene: AMELX, ENAM, KLK4, MMP20, SLC24A4. Transmitere X-linkată / autozomal dominantă / autozomal recesivă.", "Prevalență 1/700–1/14.000. Diagnostic: examen clinic + radiografie (contrast smalț–dentină) + test genetic.", "Simptome: smalț subțire/fragil, sensibilitate la cald-rece, durere, decolorare (galben/gri/maro), tartru excesiv, hiperplazie gingivală."], "q": [["Ce structură dentară este afectată în Amelogenesis Imperfecta?", ["Smalțul", "Dentina", "Pulpa dentară", "Cementul"], 0, "Boala afectează strict smalțul, structură de origine ectodermală."], ["Componenta mezodermală a dintelui (dentina) în AI este:", ["Neafectată", "Complet distrusă", "Înlocuită cu os", "Calcificată excesiv"], 0, "AI este strict limitată la ectoderm; dentina (mezodermală) este neafectată."], ["Câte forme clinice are Amelogenesis Imperfecta?", ["4", "2", "3", "6"], 0, "Hipoplazică, hipocalcifiată, hipomaturată și forma mixtă."], ["În forma HIPOPLAZICĂ, smalțul:", ["Nu se dezvoltă la grosimea normală", "Este foarte moale", "Lipsește complet", "Este supra-mineralizat"], 0, "Hipoplazic = smalț prea subțire, sub grosimea normală."], ["În forma HIPOCALCIFIATĂ, smalțul este:", ["Foarte moale, se îndepărtează ușor", "Mai gros decât normal", "Complet absent", "Foarte dur"], 0, "Smalțul hipocalcifiat e atât de moale încât poate fi îndepărtat cu un instrument profilactic."], ["Ce genă este frecvent implicată în AI?", ["AMELX", "FGFR2", "PTEN", "LMNA"], 0, "AMELX (alături de ENAM, KLK4, MMP20, SLC24A4)."], ["Un simptom caracteristic al AI este:", ["Sensibilitate la cald/rece și decolorarea dinților", "Sclere albastre", "Macrocefalie", "Pliu palmar unic"], 0, "Dinți subțiri, sensibili termic, decolorați, cu tartru excesiv."]]}, {"nume": "Boala Crouzon", "scurt": "Craniosinostoză autosomal dominantă (FGFR2)", "idei": ["Craniosinostoză = sinostoză (fuziune) prematură a suturilor craniene, începând din primul an de viață.", "Transmitere autozomal dominantă, cu penetranță completă și expresivitate variabilă.", "Cauză: mutație în gena FGFR2 (receptorul 2 al factorului de creștere fibroblastic), cromozom 10q25-q26.", "~50% din cazuri sunt mutații de novo — favorizate de vârsta înaintată a tatălui.", "Triada clasică: craniosinostoză + hipoplazie maxilară + exoftalmie.", "Alte semne: acrocefalie/brahicefalie, hipertelorism, strabism divergent, prognatism, atrofie de nerv optic, surditate.", "Acanthosis nigricans (~5%) se asociază cu mutație în FGFR3 (Ala391Glu). Incidență ~1/60.000."], "q": [["Cum se transmite boala Crouzon?", ["Autozomal dominant", "Autozomal recesiv", "X-linkat recesiv", "Mitocondrial"], 0, "Transmitere AD, cu penetranță completă și expresivitate variabilă."], ["Ce genă este responsabilă de boala Crouzon?", ["FGFR2", "TCOF1", "ATP7A", "COL1A1"], 0, "Mutație în FGFR2 (cromozom 10q25-q26)."], ["Semnul ocular caracteristic în boala Crouzon este:", ["Exoftalmia", "Sclerele albastre", "Cataracta congenitală", "Aniridia"], 0, "Exoftalmia, alături de hipertelorism și strabism divergent."], ["Ce crește riscul de mutație de novo în boala Crouzon?", ["Vârsta înaintată a tatălui", "Vârsta tânără a mamei", "Fumatul matern", "Carența de cupru"], 0, "Aprox. 50% sunt mutații de novo, asociate cu vârsta paternă înaintată."], ["Procesul de bază în boala Crouzon este:", ["Sinostoza prematură a suturilor craniene", "Deficitul de colagen", "Lipsa transportului de cupru", "Trisomia 21"], 0, "Fuziunea prematură a suturilor determină deformările craniofaciale."], ["Triada clasică a bolii Crouzon include, pe lângă craniosinostoză și exoftalmie:", ["Hipoplazie maxilară", "Sclere albastre", "Polidactilie", "Hipocalcemie"], 0, "Craniosinostoză + hipoplazie maxilară + exoftalmie."], ["Acanthosis nigricans în boala Crouzon se asociază cu mutație în:", ["FGFR3", "PTEN", "LMNA", "NIPBL"], 0, "Pacienții cu acanthosis nigricans prezintă mutația Ala391Glu în FGFR3."]]}, {"nume": "Boala Menkes", "scurt": "Boala „părului sârmos” – deficit de transport al cuprului", "idei": ["Boală neurodegenerativă X-linkată RECESIVĂ a insuficienței transportului de cupru; afectează băieții.", "Denumită și boala „părului sârmos” (kinky hair).", "Gena ATP7A, brațul lung al cromozomului X (Xq13.3); ~1/3 din cazuri sunt mutații noi.", "Cuprul = cofactor esențial pentru enzime: lizil oxidaza, tirozinaza, citocrom C oxidaza, dopamin-beta-hidroxilaza, ceruloplasmina.", "Înrudită biochimic cu boala Wilson (gena ATP7B), dar cu exprimare tisulară diferită (Menkes NU se exprimă în ficat).", "Clinic: păr depigmentat/sârmos/friabil, hipotonie, epilepsie, degenerare cerebrală, țesut conjunctiv anormal (anevrisme, hernii, diverticuli).", "La naștere părul e normal, se depigmentează la ~6 săptămâni. Deces în jurul vârstei de ~3 ani."], "q": [["Care este denumirea populară a bolii Menkes?", ["Boala părului sârmos", "Boala oaselor de sticlă", "Boala omului de cauciuc", "Boala bronzată"], 0, "„Kinky hair disease” – părul sârmos, friabil, depigmentat."], ["Ce metal este deficitar în transportul său în boala Menkes?", ["Cuprul", "Fierul", "Zincul", "Calciul"], 0, "Boală a insuficienței transportului de cupru."], ["Ce genă este afectată în boala Menkes?", ["ATP7A", "ATP7B", "FGFR2", "PTEN"], 0, "ATP7A (Xq13.3). ATP7B este gena bolii Wilson."], ["Cum se transmite boala Menkes?", ["X-linkat recesiv (afectează băieții)", "Autozomal dominant", "Mitocondrial", "Autozomal recesiv"], 0, "X-linkat recesiv; băieții sunt afectați, mamele sunt purtătoare."], ["O enzimă cupru-dependentă afectată în boala Menkes este:", ["Lizil oxidaza", "Amilaza", "Lipaza", "Pepsina"], 0, "Lizil oxidaza, tirozinaza, citocrom C oxidaza etc. depind de cupru."], ["Evoluția părului în boala Menkes:", ["Normal la naștere, se depigmentează la ~6 săptămâni", "Absent de la naștere", "Negru și gros toată viața", "Cade complet la naștere"], 0, "La naștere e normal, apoi se depigmentează către 6 săptămâni."], ["Prognosticul formei clasice de boală Menkes:", ["Deces în jurul vârstei de ~3 ani", "Speranță de viață normală", "Vindecare spontană", "Deces la naștere obligatoriu"], 0, "Forma clasică e severă, cu deces tipic în jurul vârstei de 3 ani."]]}, {"nume": "Sindromul Prader-Willi", "scurt": "Lipsa contribuției paterne a 15q11-q13", "idei": ["Cauză: lipsa contribuției PATERNE a regiunii 15q11.2–q13.", "Mecanisme: deleție paternă 15q11-q13 (~70%), disomie uniparentală MATERNĂ (~25%), defect de imprinting/amprentare (~5%).", "ACELAȘI cromozom 15: disomia/contribuția PATERNĂ pierdută → Prader-Willi; contribuția MATERNĂ pierdută → sindrom Angelman (exemplu clasic de imprinting genomic).", "Sindrom „în două etape”: sugar = hipotonie severă + dificultăți de alimentare (gavaj); după 1–3 ani = hiperfagie + obezitate timpurie.", "Semne: statură mică, mâini și picioare mici (acromicrie), hipogonadism/criptorhidie, retard mintal moderat, dismorfism facial (ochi migdalați, gură mică).", "Incidență ~1/15.000. Diagnostic: teste ADN/FISH, dozare hormonală.", "Tratament: hormon de creștere (STH), steroizi gonadici, managementul strict al alimentației pe viață."], "q": [["Ce cromozom este implicat în sindromul Prader-Willi?", ["Cromozomul 15", "Cromozomul 21", "Cromozomul X", "Cromozomul 22"], 0, "Regiunea 15q11.2–q13."], ["Defectul de bază în Prader-Willi este:", ["Lipsa contribuției PATERNE a regiunii 15q11-q13", "Lipsa contribuției materne", "Trisomia 15", "Monosomia X"], 0, "Se pierde contribuția paternă; lipsa celei materne dă sindrom Angelman."], ["Care este mecanismul genetic cel mai frecvent (~70%)?", ["Deleția paternă 15q11-q13", "Disomia maternă", "Defect de imprinting", "Translocație"], 0, "Deleția de novo a regiunii paterne, ~70% din cazuri."], ["Pierderea contribuției MATERNE a aceleiași regiuni 15q11-q13 produce:", ["Sindrom Angelman", "Sindrom Down", "Sindrom Turner", "Boala Crouzon"], 0, "Exemplu clasic de imprinting: același cromozom, sindroame diferite."], ["Cum se manifestă PRIMA fază (sugar) a sindromului?", ["Hipotonie severă și dificultăți de alimentare", "Hiperfagie și obezitate", "Convulsii febrile", "Fracturi multiple"], 0, "Sugarul e hipoton, suge greu, adesea necesită gavaj."], ["A DOUA fază (după 1–3 ani) se caracterizează prin:", ["Hiperfagie și obezitate timpurie", "Anorexie", "Hipotonie care dispare", "Statură înaltă"], 0, "Apare interesul anormal pentru mâncare și obezitatea."], ["Mâinile și picioarele în Prader-Willi sunt:", ["Mici (acromicrie)", "Foarte mari", "Cu polidactilie", "Cu sindactilie totală"], 0, "Acromicrie = mâini și picioare mici."]]}, {"nume": "Sindromul Turner", "scurt": "Monosomie X (45,X) – disgenezie gonadală, fenotip feminin", "idei": ["Disgenezie gonadală cu fenotip feminin; aberație gonozomică (heterozomică).", "Cariotip clasic: monosomie X — 45,X (frecvență 50–80%). Originea cromozomului X existent este 75% maternă.", "Variantă structurală frecventă: izocromozom pentru brațul lung — 46,X,i(Xq). Există și mozaicisme (ex. 45,X/46,XX).", "Incidență ~1/2500 nou-născuți de sex feminin.", "Clinic nou-născut: limfedem al extremităților, pterygium colli (gât palmat), pavilioane auriculare jos inserate.", "Clinic: statură mică, cubitus valgus, distanță intermamelonară crescută, coarctație de aortă (cardiopatie tipică).", "Fenotip juvenil: amenoree primară, infantilism genital, sterilitate (absența caracterelor sexuale secundare)."], "q": [["Care este cariotipul clasic în sindromul Turner?", ["45,X (monosomie X)", "47,XXY", "47,XX,+21", "46,XY"], 0, "Monosomia X, 45,X, în 50–80% din cazuri."], ["Fenotipul în sindromul Turner este:", ["Feminin", "Masculin", "Ambiguu obligatoriu", "Variabil în funcție de vârstă"], 0, "Disgenezie gonadală cu fenotip feminin."], ["Semnul caracteristic la nivelul gâtului este:", ["Pterygium colli (gât palmat)", "Gușă", "Gât foarte lung", "Torticolis"], 0, "Pterygium colli – gât scurt, palmat."], ["Cardiopatia congenitală tipică în sindromul Turner este:", ["Coarctația de aortă", "Tetralogia Fallot", "Transpoziția de vase", "Canal arterial persistent izolat"], 0, "Coarctația de aortă este malformația cardiacă tipică."], ["Funcția gonadală în sindromul Turner:", ["Disgenezie gonadală → amenoree primară și sterilitate", "Hiperfuncție ovariană", "Pubertate precoce", "Fertilitate normală"], 0, "Gonadele sunt transformate în bandelete fibroase → infantilism genital."], ["Statura în sindromul Turner este:", ["Mică (hipotrofie staturală)", "Foarte înaltă", "Normală", "Gigantism"], 0, "Statura mică e o trăsătură constantă."], ["Deformarea tipică a cotului în Turner este:", ["Cubitus valgus", "Cubitus varus", "Anchiloză", "Luxație de cot"], 0, "Cubitus valgus, descris încă din primele cazuri."]]}, {"nume": "Sindromul Cowden", "scurt": "Sindrom hamartomatos cu risc de cancer (PTEN)", "idei": ["Sindrom hamartomatos: formațiuni pseudo-tumorale numite hamartoame + risc crescut de cancere.", "Cauză: mutație în gena supresoare tumorală PTEN (cromozom 10q23). Transmitere autozomal dominantă.", "Pierderea funcției PTEN → hiperproliferare celulară (neoplazie); PTEN are și rol în supresia angiogenezei.", "Cutanat caracteristic: papule faciale multiple, keratoză acrală, keratoză palmoplantară.", "Extremitate cefalică: macrocefalie, fibrom al scalpului, palat înalt, facies adenoid.", "Risc neoplazic crescut: cancer mamar, tiroidian, endometrial, gastrointestinal.", "Diagnostic: ≥6 papule faciale, keratoze acrale/palmoplantare, macrocefalie, rudă de gradul I cu SC."], "q": [["Ce tip de leziuni definesc sindromul Cowden?", ["Hamartoame", "Anevrisme", "Fracturi", "Chisturi renale izolate"], 0, "Sindrom hamartomatos cu risc crescut de neoplazii."], ["Ce genă este afectată în sindromul Cowden?", ["PTEN", "FGFR2", "TCOF1", "AMELX"], 0, "Gena supresoare tumorală PTEN (10q23)."], ["Cum se transmite sindromul Cowden?", ["Autozomal dominant", "X-linkat recesiv", "Autozomal recesiv", "Mitocondrial"], 0, "Transmitere autozomal dominantă."], ["Semnul neurologic/cefalic caracteristic este:", ["Macrocefalia", "Microcefalia", "Hidrocefalia obligatorie", "Anencefalia"], 0, "Macrocefalia este criteriu de diagnostic."], ["Ce cancere apar frecvent în sindromul Cowden?", ["Mamar, tiroidian, endometrial", "Doar leucemii", "Doar osteosarcom", "Niciun cancer"], 0, "Risc crescut de cancer mamar, tiroidian, endometrial, gastrointestinal."], ["Care semn cutanat este criteriu diagnostic în SC?", ["Papulele faciale multiple", "Sclerele albastre", "Vitiligo", "Petele café-au-lait"], 0, "Papulele faciale (≥6) și keratoza palmoplantară sunt criterii."]]}, {"nume": "Sindromul Aarskog", "scurt": "Boală X-linkată (FGD1) – facies, schelet, genital", "idei": ["Boală genetică X-linkată; gena FGD1, pe brațul scurt al cromozomului X.", "Se manifestă aproape exclusiv la băieți; transmisă frecvent de la mama purtătoare (risc 50%).", "Facies: frunte lată, păr cu implantare în mijlocul frunții, hipertelorism ocular, ptoză palpebrală.", "Partea medie a feței: nas scurt cu nări anteversate, urechi slab dezvoltate/proeminente, gură largă, bărbie mică.", "Mâini: degete scurte, ținute caracteristic, articulații foarte flexibile; erupție dentară întârziată, dinți absenți.", "Genital: criptorhidie (testicule necoborâte), hernii ombilicale și genitale.", "Diagnostic diferențial principal: sindromul Noonan (statură mică, hipertelorism, dar și gât lat și defecte cardiace). Prognostic favorabil."], "q": [["Ce genă este afectată în sindromul Aarskog?", ["FGD1", "FGFR2", "PTEN", "NIPBL"], 0, "FGD1, localizată pe brațul scurt al cromozomului X."], ["Pe ce cromozom este localizată gena Aarskog?", ["Cromozomul X", "Cromozomul 21", "Cromozomul 15", "Cromozomul 7"], 0, "Pe cromozomul X – de aceea afectează băieții."], ["Cine este afectat preponderent în sindromul Aarskog?", ["Băieții", "Fetele", "Ambele sexe egal", "Doar adulții"], 0, "Gena fiind X-linkată, se manifestă la sexul masculin."], ["Care este un semn facial caracteristic?", ["Hipertelorismul ocular", "Sclerele albastre", "Microtia", "Colobomul"], 0, "Hipertelorism, ptoză palpebrală, frunte lată."], ["Ce anomalie genitală este frecventă în sindromul Aarskog?", ["Criptorhidia", "Hipospadias izolat sever", "Ambiguitate genitală totală", "Agenezie renală"], 0, "Criptorhidie + hernii ombilicale/genitale."], ["Care este principalul diagnostic diferențial?", ["Sindromul Noonan", "Sindromul Down", "Boala Menkes", "Progeria"], 0, "Noonan – statură mică, hipertelorism, dar cu gât lat și defecte cardiace."], ["Prognosticul în sindromul Aarskog este în general:", ["Favorabil", "Letal neonatal", "Foarte rezervat", "Deces la 3 ani"], 0, "Fără malformații majore/retard sever de regulă; prognostic favorabil."]]}, {"nume": "Sindromul Cornelia de Lange", "scurt": "Anomalii congenitale multiple (NIPBL)", "idei": ["Sindrom cu anomalii congenitale multiple, deficit de creștere pre- și postnatal, retard psihomotor.", "Gene: NIPBL, SMC3, SMC1A (regiune critică 3q26.3). NIPBL/SMC3 = AD; SMC1A = X-linkat.", "Facies caracteristic: sprâncene mari, UNITE (sinofris) + gene lungi, microcefalie, narine anteversate, buze subțiri, micrognatie.", "Membre superioare: micromelie, oligodactilie, clinodactilie (defecte ale membrelor superioare).", "Hirsutism, retard mintal sever (IQ 30-85), convulsii.", "Comportament: hiperactivitate, tendință la autovătămare, agresivitate, sindrom autism-like.", "Frecvență 1/10.000–50.000. Tratament multidisciplinar (reflux, malformații cardiace, criptorhidie)."], "q": [["Care este semnul facial cel mai caracteristic în Cornelia de Lange?", ["Sprâncene unite (sinofris) și gene lungi", "Sclere albastre", "Exoftalmie", "Macroglosie"], 0, "Sinofris + gene lungi, în peste 99% din cazuri."], ["Ce genă este principala cauză a sindromului Cornelia de Lange?", ["NIPBL", "PTEN", "ATP7A", "LMNA"], 0, "NIPBL (transmitere AD), alături de SMC1A (X-linkat) și SMC3."], ["Membrele superioare în acest sindrom prezintă tipic:", ["Micromelie / oligodactilie", "Polidactilie obligatorie", "Membre normale", "Macrodactilie"], 0, "Defecte ale membrelor superioare: micromelie, oligodactilie, clinodactilie."], ["Creșterea în sindromul Cornelia de Lange este:", ["Întârziată pre- și postnatal", "Accelerată", "Normală", "Doar postnatal afectată"], 0, "Deficit de creștere atât intrauterin, cât și după naștere."], ["Ce trăsătură comportamentală este frecventă?", ["Tendința la autovătămare / autism-like", "Calm excesiv", "Pubertate precoce", "Hiperfagie"], 0, "Hiperactivitate, autovătămare, agresivitate, comportament autism-like."], ["Dimensiunea craniului în Cornelia de Lange este de regulă:", ["Microcefalie", "Macrocefalie", "Normală", "Hidrocefalie"], 0, "Microcefalie în ~98% din cazuri."]]}, {"nume": "Sindromul Ehlers-Danlos", "scurt": "Boală a țesutului conjunctiv – deficit de colagen", "idei": ["Boală genetică a țesutului conjunctiv, prin deficit de colagen.", "Triada clinică: hiperelasticitatea pielii (fragilă, se rupe ușor), hiperlaxitate articulară, fragilitate tisulară (echimoze/hematoame spontane, hernii).", "Clasificare Beighton în 11 tipuri; cele mai frecvente sunt I, II, III (~80%).", "Tip IV (vascular): cel mai grav — risc de rupturi arteriale și de intestin gros, deces subit.", "Tip VI: afectare oculară (keratoconus, sclere albastre) + cifoscolioză; Tip VIII: afectare periodontală/dentară.", "Gene: COL1A1, COL1A2, COL3A1, COL5A1, ADAMTS2, PLOD1 etc. Transmitere variabilă (AD/AR/X-linkat).", "Frecvent prolaps de valvă mitrală. Tratament: vitamina C, prudență chirurgicală (țesuturile nu țin suturile)."], "q": [["Ce țesut este afectat primar în sindromul Ehlers-Danlos?", ["Țesutul conjunctiv (colagen)", "Țesutul osos mineralizat", "Țesutul nervos", "Smalțul dentar"], 0, "Defect de colagen → afectarea țesutului conjunctiv."], ["Pielea în sindromul Ehlers-Danlos este:", ["Hiperelastică și fragilă", "Îngroșată și dură", "Calcificată", "Absentă pe zone"], 0, "Hiperelastică, fragilă, se rupe la traume minime („omul de cauciuc”)."], ["Care tip de Ehlers-Danlos are risc de rupturi vasculare și deces subit?", ["Tipul IV (vascular)", "Tipul I", "Tipul III", "Tipul XI"], 0, "Tipul IV (vascular) — rupturi arteriale și de intestin gros."], ["Articulațiile în Ehlers-Danlos sunt tipic:", ["Hiperlaxe / hipermobile", "Anchilozate", "Fuzionate", "Rigide"], 0, "Hiperlaxitate articulară cu instabilitate."], ["Ce tratament medicamentos ajută vindecarea leziunilor în SED?", ["Vitamina C", "Bifosfonați", "Cupru", "Insulină"], 0, "Vitamina C contribuie la vindecarea leziunilor."], ["Ce afectare cardiacă este frecventă în SED?", ["Prolaps de valvă mitrală", "Coarctație de aortă", "Tetralogie Fallot", "Hipoplazie de ventricul stâng"], 0, "Prolapsul de valvă mitrală este frecvent (mai ales tip I)."]]}, {"nume": "Despicăturile labio-palatine", "scurt": "Malformație de fuziune a mugurilor faciali", "idei": ["Malformație congenitală frecventă, produsă în ~ziua 35 de gestație prin deficit de fuziune a mugurelui frontal cu mugurii maxilari/lamele palatine.", "Incidență medie ~1/1000 nou-născuți.", "Despicătura LABIO-palatină: mai frecventă la băieți, partea STÂNGĂ; despicătura PALATINĂ izolată: mai frecventă la fete.", "Etiologie multifactorială; gene asociate: TGFA, MSX1, TGFB3, GABRB3, PVRL1.", "Factori de risc: vârsta avansată a mamei, fumat, alimentație deficitară, radiații, infecții virale (rubeola).", "Forme: buză de iepure (simplă/completă, uni/bilaterală); gura de lup = forma bilaterală totală (cea mai gravă).", "Tratament chirurgical: buza ~după 2–3 luni (6 luni pentru despicături complete/bilaterale), palatul între 18 luni și 2 ani; logoped."], "q": [["Mecanismul despicăturilor labio-palatine este:", ["Deficit de fuziune a mugurilor faciali (~ziua 35)", "Trisomie 21", "Deficit de cupru", "Deleție 22q11"], 0, "Lipsa fuziunii mugurelui frontal cu mugurii maxilari/lamele palatine."], ["Incidența medie a despicăturilor labio-palatine este:", ["~1/1000", "~1/100", "~1/100.000", "~1/10"], 0, "Aproximativ 1 la 1000 nou-născuți."], ["Despicătura LABIO-palatină este mai frecventă la:", ["Băieți, partea stângă", "Fete, partea dreaptă", "Egal la ambele sexe", "Doar la prematuri"], 0, "Băieții și partea stângă sunt mai frecvent afectați."], ["Despicătura PALATINĂ izolată apare mai des la:", ["Fete", "Băieți", "Doar la gemeni", "Doar la adulți"], 0, "Despicăturile izolate ale palatului sunt mai frecvente la fete."], ["Care infecție virală este un factor de risc citat frecvent?", ["Rubeola", "Varicela", "Gripa sezonieră", "Hepatita A"], 0, "Rubeola este frecvent citată printre agenții virali de risc."], ["Când se recomandă operația diviziunilor palatine?", ["Între 18 luni și 2 ani", "În prima zi de viață", "După 18 ani", "Niciodată"], 0, "Diviziunile palatine se operează între 18 luni și 2 ani."]]}, {"nume": "Displazia ectodermală anhidrotică", "scurt": "Afectarea derivatelor ectodermale (piele, păr, dinți, glande)", "idei": ["Grup de sindroame ereditare non-progresive în care țesutul afectat derivă din ectoderm (piele și anexe, dinți, glande).", "Triada clasică: ANHIDROZĂ/hipohidroză (glande sudoripare reduse), HIPOTRICHOZĂ (păr rar, subțire), HIPODONȚIE (dinți puțini, conici).", "Consecința lipsei transpirației: hipertermie cu febră și convulsii — cel mai amenințător aspect.", "Transmitere: cel mai frecvent X-linkată recesivă (forma anhidrotică); există și AD și AR.", "Dismorfism facial: frunte bombată, urechi jos implantate, buze proeminente, nas cu baza largă; xeroftalmie, xerostomie.", "Risc crescut de infecții respiratorii (glande mucoase deficitare).", "Diagnostic frecvent la 12–18 luni (când dentiția întârzie); prevalența formei anhidrotice ~1/100.000."], "q": [["Din ce strat embrionar derivă țesuturile afectate în displazia ectodermală?", ["Ectoderm", "Mezoderm", "Endoderm", "Mezenchim visceral"], 0, "Pielea, anexele, dinții și glandele afectate sunt de origine ectodermală."], ["Triada clasică a displaziei ectodermale anhidrotice este:", ["Anhidroză + hipotrichoză + hipodonție", "Sclere albastre + fracturi + surditate", "Macrocefalie + hamartoame + cancere", "Exoftalmie + alopecie + îmbătrânire"], 0, "Lipsa transpirației, păr rar și dinți puțini/conici."], ["Care este consecința periculoasă a lipsei glandelor sudoripare?", ["Hipertermie cu febră și convulsii", "Hipotermie cronică", "Diaree severă", "Hipotensiune"], 0, "Incapacitatea de a transpira → febră mare, convulsii, sechele neurologice."], ["Forma anhidrotică se transmite cel mai frecvent:", ["X-linkat recesiv", "Autozomal dominant pur", "Mitocondrial", "Doar de novo"], 0, "Forma clasică anhidrotică este X-linkată recesivă."], ["Ce formă au tipic dinții în displazia ectodermală?", ["Conici", "Pătrați", "Foarte mari", "Dubli"], 0, "Hipodonție cu dinți de formă conică."], ["Ce tip de infecții apar frecvent la acești pacienți?", ["Respiratorii", "Urinare exclusiv", "Articulare", "Cutanate bacteriene grave izolate"], 0, "Glandele mucoase deficitare predispun la infecții respiratorii."]]}, {"nume": "Osteogeneza Imperfectă", "scurt": "„Boala oaselor de sticlă” – defect de colagen tip I", "idei": ["Fragilitate osoasă excesivă printr-un defect de elaborare a fibrelor de colagen TIP I.", "Gene: COL1A1 (lanț alfa1, cromozom 17) și COL1A2 (lanț alfa2, cromozom 7); peste 200 de mutații. Mutațiile alfa1 sunt mai severe (efect dominant-negativ).", "4 tipuri majore: Tip I = ușoară (sclere albastre, fracturi, deformări absente); Tip II = severă, LETALĂ neonatal; Tip III = severă cu deformări progresive, sclere albastre; Tip IV = moderată, SCLERE NORMALE.", "Semne: fracturi repetate, osteoporoză, deformări scheletice, statură mică, sclere albastre, surditate, anomalii dentare.", "Substituțiile glicinei din repetiția Gly-X-Y au efectele cele mai grave (forme letale, de novo).", "Tratament: corecție chirurgicală a fracturilor + bifosfonați (reduc resorbția osoasă).", "Cercetare: transplant de celule stem mezenchimale. Incidență ~1/20.000."], "q": [["Ce proteină este afectată în osteogeneza imperfectă?", ["Colagenul tip I", "Elastina", "Cheratina", "Fibrilina"], 0, "Defect de colagen tip I, principala proteină structurală a osului."], ["Care este semnul ocular caracteristic?", ["Sclerele albastre", "Exoftalmia", "Colobomul", "Keratoconusul"], 0, "Sclerele albastre apar în tipurile I și III."], ["Care tip de osteogeneză imperfectă este LETAL neonatal?", ["Tipul II", "Tipul I", "Tipul IV", "Tipul III"], 0, "Tipul II este forma severă, letală în perioada neonatală."], ["Care este forma cea mai UȘOARĂ?", ["Tipul I", "Tipul II", "Tipul III", "Tipul IV"], 0, "Tipul I – fragilitate osoasă, sclere albastre, fără deformări."], ["Care tip are SCLERE NORMALE?", ["Tipul IV", "Tipul I", "Tipul II", "Tipul III"], 0, "Tipul IV are sclere normale, severitate moderată."], ["Ce clasă de medicamente se folosește în tratament?", ["Bifosfonații", "Antibioticele", "Corticosteroizii topici", "Anticoagulantele"], 0, "Bifosfonații reduc resorbția osoasă și cresc densitatea osoasă."], ["Manifestarea principală a bolii este:", ["Fracturi repetate / fragilitate osoasă", "Hiperpigmentare", "Hiperfagie", "Macrocefalie"], 0, "Fragilitatea osoasă cu fracturi repetate este semnul-cheie."]]}, {"nume": "Sindromul velo-cardio-facial (DiGeorge)", "scurt": "Microdeleție 22q11.2 – „CATCH 22”", "idei": ["Sindromul DiGeorge / velo-cardio-facial: microdeleție 22q11.2 (la ~83% din pacienți).", "Una dintre cele mai frecvente boli cromozomiale (1/2000–1/4000 nou-născuți).", "Mnemonic „CATCH 22”: Cardiac, Anomalii faciale, hipoplazie Timică, Cleft (despicătură palatină), Hipocalcemie.", "Cardiac (75–80%): tetralogia Fallot, arc aortic întrerupt, defect septal ventricular, atrezie/stenoză pulmonară.", "Hipoplazia timică → imunodeficiență (infecții grave); hipocalcemia neonatală = hipoparatiroidism congenital.", "Anomalii ale palatului (60–85%): de la despicătură la insuficiență velofaringiană → voce nazonală, reflux pe nas.", "Retard mintal ușor/moderat la ~40%, dificultăți de învățare, risc psihiatric la adolescenți/adulți. Recurență 50% dacă un părinte are deleția."], "q": [["Ce deleție cromozomială stă la baza sindromului velo-cardio-facial?", ["22q11.2", "15q11-q13", "Xq13.3", "5p15"], 0, "Microdeleția 22q11.2 la ~83% din pacienți."], ["Ce glandă este hipoplazică, ducând la imunodeficiență?", ["Timusul", "Tiroida", "Suprarenala", "Hipofiza"], 0, "Aplazia/hipoplazia timică → susceptibilitate la infecții grave."], ["Ce tulburare electrolitică apare în acest sindrom?", ["Hipocalcemia (hipoparatiroidism)", "Hipernatremia", "Hiperkaliemia", "Hipoglicemia"], 0, "Hipocalcemia neonatală prin hipoparatiroidism congenital."], ["Care malformație cardiacă este tipică?", ["Tetralogia Fallot", "Coarctația de aortă izolată", "Prolaps de valvă mitrală", "Niciuna"], 0, "Tetralogia Fallot, arc aortic întrerupt, DSV sunt frecvente."], ["Anomaliile palatului determină frecvent:", ["Voce nazonală și reflux pe nas", "Surditate totală", "Macroglosie", "Anodonție"], 0, "Insuficiența velofaringiană → vorbire nazonală și refluarea lichidelor pe nas."], ["Riscul de recurență dacă un părinte poartă deleția este:", ["50%", "0%", "100%", "25%"], 0, "Recurența e nesemnificativă în delețiile de novo, dar 50% dacă un părinte o are."]]}, {"nume": "Sindromul Down (Trisomia 21)", "scurt": "Trisomia cromozomului 21", "idei": ["Cauză: trisomia cromozomului 21 (un cromozom 21 suplimentar).", "Cel mai frecvent tip: trisomia 21 liberă (~95% din cazuri).", "Principalul factor de risc: vârsta maternă peste 35 de ani.", "Facies: aplatizat, ochi oblici (aspect mongoloid), punte nazală turtită, limbă mare/protruzionată, urechi mici jos inserate, gât scurt.", "Hipotonie musculară, pliu palmar transversal unic (linia simiană), statură mică, spațiu mărit între haluce și degetul II.", "Retard intelectual ușor-moderat, malformații cardiace congenitale (cea mai frecventă asociere), hipotiroidism, risc de boală celiacă.", "Diagnostic confirmat prin cariotip. Nu există tratament curativ — doar simptomatic și de susținere."], "q": [["Care este cauza sindromului Down?", ["Trisomia cromozomului 21", "Monosomia X", "Deleția 22q11", "Trisomia 18"], 0, "Prezența unui cromozom 21 suplimentar."], ["Care este cel mai frecvent tip de sindrom Down?", ["Trisomia 21 liberă (~95%)", "Translocație", "Mozaicism", "Trisomie parțială"], 0, "Trisomia 21 liberă reprezintă ~95% din cazuri."], ["Care este principalul factor de risc pentru sindromul Down?", ["Vârsta maternă peste 35 de ani", "Vârsta paternă tânără", "Fumatul matern", "Deficitul de cupru"], 0, "Riscul crește cu vârsta maternă, mai ales peste 35 de ani."], ["Ce semn al mâinii este caracteristic?", ["Pliul palmar transversal unic (linia simiană)", "Polidactilia", "Degete scurte hipermobile", "Sindactilia totală"], 0, "Linia simiană – pliu palmar unic."], ["Care este cea mai frecventă malformație asociată?", ["Malformațiile cardiace congenitale", "Despicătura palatină", "Coarctația de aortă", "Agenezia renală"], 0, "Malformațiile cardiace congenitale sunt cele mai frecvente."], ["Ce investigație confirmă diagnosticul?", ["Cariotipul", "Radiografia de craniu", "Ecocardiografia", "Dozarea cuprului"], 0, "Cariotipul (analiza cromozomială) confirmă trisomia 21."], ["Tonusul muscular în sindromul Down este:", ["Scăzut (hipotonie)", "Crescut (hipertonie)", "Normal", "Variabil cu spasme"], 0, "Hipotonia musculară este caracteristică."]]}, {"nume": "Sindromul Treacher-Collins", "scurt": "Disostoză mandibulo-facială (TCOF1)", "idei": ["Boală genetică ce afectează dezvoltarea structurilor faciale (disostoză mandibulo-facială).", "Gena TCOF1; transmitere autozomal dominantă.", "Ochi: fante palpebrale ANTIMONGOLOIDE (orientate în jos), COLOBOM al pleoapei inferioare, absența parțială a genelor.", "Hipoplazia pomeților (malară) și a mandibulei (micrognatie), hipoplazie a orbitelor și maxilarului.", "Ureche: microtie și malformații ale urechii externe/conductului auditiv → HIPOACUZIE.", "Despicătură palatină, macrostomie, palat ogival, malocluzie.", "Inteligența este de obicei NORMALĂ; prognostic în general bun. Tratament: chirurgie reconstructivă."], "q": [["Ce genă este afectată în sindromul Treacher-Collins?", ["TCOF1", "FGFR2", "PTEN", "ATP7A"], 0, "Gena TCOF1."], ["Cum se transmite sindromul Treacher-Collins?", ["Autozomal dominant", "X-linkat recesiv", "Autozomal recesiv", "Mitocondrial"], 0, "Transmitere autozomal dominantă."], ["Cum sunt orientate fantele palpebrale?", ["Antimongoloid (în jos)", "Mongoloid (în sus)", "Vertical", "Normal orientate"], 0, "Orientare antimongoloidă a fantelor palpebrale."], ["Care este semnul ocular caracteristic?", ["Colobomul pleoapei inferioare", "Sclerele albastre", "Exoftalmia", "Cataracta"], 0, "Colobomul pleoapei inferioare + absența parțială a genelor."], ["Ce structuri sunt hipoplazice în Treacher-Collins?", ["Pomeții și mandibula", "Oasele lungi", "Coloana lombară", "Coastele"], 0, "Hipoplazia malară (pomeții) și a mandibulei (micrognatie)."], ["Inteligența pacienților cu Treacher-Collins este de obicei:", ["Normală", "Sever afectată", "Absentă", "Variabilă cu retard sever"], 0, "De regulă normală; prognostic bun, speranță de viață normală."], ["Problema auditivă apare din cauza:", ["Malformațiilor urechii", "Atrofiei nervului optic", "Hipocalcemiei", "Surdității centrale"], 0, "Microtie și malformații ale urechii → hipoacuzie."]]}, {"nume": "Sindromul Hutchinson-Gilford (Progeria)", "scurt": "Îmbătrânire prematură (LMNA / progerină)", "idei": ["Boală genetică rară caracterizată prin ÎMBĂTRÂNIRE PREMATURĂ.", "Gena afectată: LMNA; se acumulează o proteină anormală numită PROGERINĂ.", "Semne: statură mică, alopecie/calviție, lipsa sprâncenelor, piele subțire, hiperpigmentare, vene craniene proeminente.", "Facies: exoftalmie, micrognatie/retrognatie, nas ascuțit, buze subțiri, voce subțire.", "Schelet: mobilitate articulară redusă, coxa valga, clavicule distrofice, torace piriform, unghii distrofice.", "Complicații (cauza decesului): cardiovasculare — ateroscleroză, infarct miocardic, AVC, boli coronariene.", "Diagnostic: analiza genei LMNA. Speranța medie de viață ~13 ani; fără tratament curativ; prognostic foarte rezervat."], "q": [["Care este caracteristica principală a progeriei?", ["Îmbătrânirea prematură", "Fragilitatea osoasă", "Hiperfagia", "Hipocalcemia"], 0, "Îmbătrânire accelerată de la vârstă fragedă."], ["Ce genă este afectată în progeria Hutchinson-Gilford?", ["LMNA", "TCOF1", "FGD1", "NIPBL"], 0, "Mutația genei LMNA."], ["Ce proteină anormală se acumulează?", ["Progerina", "Colagenul tip I", "Distrofina", "Hemoglobina S"], 0, "Progerina, o formă anormală a laminei A."], ["Care este cea mai frecventă cauză a decesului?", ["Cardiovasculară (infarct, AVC)", "Insuficiență renală", "Infecții respiratorii", "Hemoragii"], 0, "Ateroscleroză accelerată → infarct miocardic, AVC."], ["Care este speranța medie de viață în progerie?", ["~13 ani", "~40 ani", "~3 ani", "Normală"], 0, "Aproximativ 13 ani."], ["Ce modificare a părului apare în progerie?", ["Alopecie/calviție", "Hipertricoză", "Păr sârmos depigmentat", "Sinofris"], 0, "Alopecie, lipsa sprâncenelor și genelor."]]}];
+let queue=[], idx=0, score=0, answered=false, mode="", curSyn=-1;
+
+const $=id=>document.getElementById(id);
+function show(sec){["home","ideas","quiz","result"].forEach(s=>$(s).classList.toggle("hidden", s!==sec)); window.scrollTo(0,0);}
+
+// build home cards
+(function(){
+  const c=$("cards");
+  DATA.forEach((s,i)=>{
+    const d=document.createElement("div");
+    d.className="synccard";
+    d.onclick=()=>openIdeas(i);
+    d.innerHTML=`<h3>${s.nume}</h3><div class="sub">${s.scurt}</div><div class="meta">${s.q.length} grile · idei de bază →</div>`;
+    c.appendChild(d);
+  });
+})();
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function openIdeas(i){
+  curSyn=i; const s=DATA[i];
+  $("ideasBox").innerHTML=`<h2>${s.nume}</h2><p class="sub" style="color:var(--muted);margin:-4px 0 12px;">${s.scurt}</p><ul>`+
+    s.idei.map(x=>`<li>${x}</li>`).join("")+`</ul>`;
+  show("ideas");
+}
+
+function startCurrent(){
+  const s=DATA[curSyn];
+  mode="syn";
+  queue=s.q.map(q=>({q, syn:s.nume}));
+  beginQuiz(s.nume);
+}
+function startMix(){
+  mode="mix";
+  let all=[];
+  DATA.forEach(s=>s.q.forEach(q=>all.push({q, syn:s.nume})));
+  shuffle(all);
+  queue=all;
+  beginQuiz("Test mixt — toate sindroamele");
+}
+function beginQuiz(title){
+  idx=0; score=0; answered=false;
+  $("qTitle").textContent=title;
+  $("scoreNow").textContent="0";
+  show("quiz"); renderQ();
+}
+
+function renderQ(){
+  answered=false;
+  const item=queue[idx]; const q=item.q;
+  const [text,opts,correct,expl]=q;
+  $("qtag").textContent = (mode==="mix"? item.syn : "Întrebarea "+(idx+1));
+  $("qtext").textContent=text;
+  $("qcount").innerHTML=`<b>${idx+1}</b>/${queue.length}`;
+  $("progBar").style.width=((idx)/queue.length*100)+"%";
+  // shuffle options but track correct
+  const order=shuffle(opts.map((o,k)=>k));
+  const box=$("opts"); box.innerHTML="";
+  const letters=["A","B","C","D","E","F"];
+  order.forEach((origK,pos)=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    b.innerHTML=`<span class="lt">${letters[pos]}</span>${opts[origK]}`;
+    b.onclick=()=>choose(b, origK===correct, correct, order, expl);
+    box.appendChild(b);
+  });
+  const e=$("expl"); e.className="expl"; e.innerHTML="";
+  const nb=$("nextBtn"); nb.disabled=true; nb.textContent="Răspunde mai întâi";
+}
+
+function choose(btn, isRight, correctIdx, order, expl){
+  if(answered) return; answered=true;
+  const buttons=[...$("opts").children];
+  const letters=["A","B","C","D","E","F"];
+  buttons.forEach((b,pos)=>{
+    b.disabled=true;
+    const origK=order[pos];
+    if(origK===correctIdx){ b.classList.add("correct"); }
+  });
+  if(isRight){
+    btn.classList.add("correct"); score++; $("scoreNow").textContent=score;
+    $("expl").className="expl show"; $("expl").innerHTML="<b>✓ Corect!</b> "+expl;
+  }else{
+    btn.classList.add("wrong");
+    buttons.forEach(b=>{ if(!b.classList.contains("correct")&&b!==btn) b.classList.add("dim");});
+    $("expl").className="expl show bad"; $("expl").innerHTML="<b>✗ Greșit.</b> "+expl;
+  }
+  $("progBar").style.width=((idx+1)/queue.length*100)+"%";
+  const nb=$("nextBtn"); nb.disabled=false;
+  nb.textContent = (idx<queue.length-1)? "Următoarea →" : "Vezi rezultatul →";
+}
+
+function nextQ(){
+  if(!answered) return;
+  if(idx<queue.length-1){ idx++; renderQ(); window.scrollTo(0,0);}
+  else finish();
+}
+
+function finish(){
+  const tot=queue.length, pct=Math.round(score/tot*100);
+  $("rScore").textContent=score; $("rTotal").textContent=tot;
+  $("rPct").textContent=pct+"% corecte";
+  let emo="🎯", msg="";
+  if(pct>=90){emo="🏆"; msg="Excelent! Stăpânești materialul.";}
+  else if(pct>=70){emo="🎉"; msg="Bine! Mai recapitulează ideile slabe.";}
+  else if(pct>=50){emo="📚"; msg="Pe drumul bun — reia ideile de bază.";}
+  else{emo="💪"; msg="Recitește ideile de bază și reîncearcă.";}
+  $("rEmoji").textContent=emo; $("rMsg").textContent=msg;
+  show("result");
+}
+function retry(){ if(mode==="mix") startMix(); else startCurrent(); }
+function goHome(){ show("home"); }
+</script>
+</body>
+</html>
